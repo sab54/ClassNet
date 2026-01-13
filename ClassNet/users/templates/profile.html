@@ -1,0 +1,28 @@
+{% extends 'base_generic.html' %}
+
+<!-- Load static files here -->
+{% load static %}
+
+{% block title %}Profile - Classnet{% endblock %}
+
+{% block content %}
+<div class ="edit-profile">
+  {% if user.profile_picture %}
+  <img src="{{ user.profile_picture.url }}" alt="Profile Picture" class="profile-picture">
+  {% endif %}
+  <h2>{{ user.get_short_name }}'s Profile</h2>
+  <form method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+    <!-- Loop through form fields and exclude password and confirm_password -->
+    {% for field in form %}
+      {% if field.name != 'password' and field.name != 'confirm_password' %}
+        <div>
+          <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+          {{ field }}
+        </div>
+      {% endif %}
+    {% endfor %}
+    <button type="submit" class="submit-button">Update Profile</button>
+  </form>
+</div>
+{% endblock %}

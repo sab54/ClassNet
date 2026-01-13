@@ -1,0 +1,30 @@
+{% extends 'base_generic.html' %}
+
+<!-- Load static files here -->
+{% load static %}
+
+{% block title %}Register - Classnet{% endblock %}
+
+{% block content %}
+<div class="register-container">
+  <div class="register-illustration">
+    <img src="{% static 'images/login-illustration.png' %}" alt="Register Illustration">
+  </div>
+  <div class="register-form">
+  <h2>Register</h2>
+    <form method="POST" enctype="multipart/form-data">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <button type="submit">Register</button>
+    </form>
+    <!-- Display error messages here -->
+  {% if messages %}
+    <ul class="messages">
+      {% for message in messages %}
+        <li class="message {{ message.tags }}">{{ message }}</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+  </div>
+</div>
+{% endblock %}

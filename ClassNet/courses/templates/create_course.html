@@ -1,0 +1,23 @@
+{% extends 'base_generic.html' %}
+
+{% load static %}
+
+{% block title %}Create Course - ClassNet{% endblock %}
+
+{% block content %}
+<div class ="create-course">
+<div class ="course-illustrating">
+  <img src="{% static 'images/course-illustration.png' %}" alt="Course Illustration" class="course-image">
+</div>
+<div class="create-course-form">
+  <h2>Create a New Course</h2>
+
+  <form method="POST">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Create Course</button>
+  </form>
+  <br>
+</div>
+</div>
+{% endblock %}

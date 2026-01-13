@@ -1,0 +1,96 @@
+{% extends 'base_generic.html' %}
+
+<!-- Load static files here -->
+{% load static %}
+
+{% block title %}Chat - Classnet{% endblock %}
+
+{% block content %}
+    {% if user.is_authenticated %}
+        <div class="chat-dashboard">
+            <h1>Lets Chat, {{ user.get_short_name }}!</h1>
+            <!-- Render the room name as a hidden div with an ID of "room-name" -->
+            <div><h4>Room: {{ room_name }}</h4></div>
+
+            <div id="chat-log" style="height: 300px; overflow-y: scroll;"></div>
+            <div class="chat-input-wrapper">
+                <input id="chat-message-input" type="text" size="80">
+            <input id="chat-message-submit" type="button" value="Send">
+            </div>
+
+            {{ room_name|json_script:"room-name" }}
+            <script>
+                const roomName = JSON.parse(document.getElementById('room-name').textContent);
+
+                const chatSocket = new WebSocket('ws://'+ window.location.host+ '/ws/'+roomName+ '/'
+                )
+                
+                chatSocket.onopen = function(e) {
+                    console.log("Connection established");
+                };
+
+                // This handles incoming messages, including the history
+                chatSocket.onmessage = function(e) {
+                    const data = JSON.parse(e.data);
+                    const chatLog = document.querySelector('#chat-log');
+                    
+                if (data.type === 'message_history') {
+                    if (data.messages.length === 0) {
+                            chatLog.innerHTML = '<p>No previous messages</p>';
+                    } else {
+                            // Reverse the messages to display them from oldest to newest
+                            data.messages.reverse(); // Reverse the array here
+
+                            // Clear the chat log before appending new messages
+                            chatLog.innerHTML = '';
+
+                            // Append messages in the correct order (oldest first)
+                        data.messages.forEach(function(message) {
+                            // Assuming message.created_at is in 'YYYY-MM-DD HH:MM:SS' format
+                            const formattedDate = new Date(message.created_at).toLocaleString();
+                                const messageText = `<b>${message.username}:</b> ${message.message}`;
+                                const isMyMessage = message.username === "{{ user.username }}";
+                                const cssClass = isMyMessage ? 'my-message' : 'other-message';
+
+                                // Append message to the bottom
+                                chatLog.insertAdjacentHTML('beforeend', `<div class="${cssClass}">${messageText}<br><span class="chat-date">${formattedDate}</span></div>`);
+                        });
+                    }
+                } else if (data.type === 'chat_message') {
+                        // Append incoming chat messages
+                        const formattedDate = new Date(data.date).toLocaleString();
+                        const messageText = `<b>${data.username}:</b> ${data.message}`;
+                        const isMyMessage = data.username === "{{ user.username }}";
+                        const cssClass = isMyMessage ? 'my-message' : 'other-message';
+
+                        // Append the new message to the bottom
+                        chatLog.insertAdjacentHTML('beforeend', `<div class="${cssClass}">${messageText}<br><span class="chat-date">${formattedDate}</span></div>`);
+                    }
+
+                    // Scroll to the bottom after appending new message
+                    chatLog.scrollTop = chatLog.scrollHeight;
+                };
+
+                chatSocket.onclose = function(e) {
+                    console.error('Chat socket closed unexpectedly');
+                };
+
+                document.querySelector('#chat-message-input').focus();
+                document.querySelector('#chat-message-input').onkeyup = function(e) {
+                    if (e.keyCode === 13) {  // enter, return
+                        document.querySelector('#chat-message-submit').click();
+                    }
+                };
+
+                document.querySelector('#chat-message-submit').onclick = function(e) {
+                    const messageInputDom = document.querySelector('#chat-message-input');
+                    const message = messageInputDom.value;
+                    chatSocket.send(JSON.stringify({
+                        'message': message
+                    }));
+                    messageInputDom.value = '';
+                };
+            </script>
+        </div>
+    {% endif %}
+{% endblock %}

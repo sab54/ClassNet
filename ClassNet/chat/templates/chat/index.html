@@ -1,0 +1,51 @@
+{% extends 'base_generic.html' %}
+
+<!-- Load static files here -->
+{% load static %}
+
+{% block title %}Chat - Classnet{% endblock %}
+
+{% block content %}
+    {% if user.is_authenticated %}
+        <div class="room-dashboard">
+            <div class="room-content-container">
+                <div class="room-content">
+                    <h1>Welcome to ClassNet Chat, {{ user.get_short_name }}!</h1>
+                    What chat room would you like to enter?<br>
+                    <div class="room-input-container">
+                        <div class="room-input">
+                            <!-- Dropdown for room selection -->
+                            <select id="room-name-select">
+                                <option value="">Select a room</option>
+                                {% for room_name in room_names %}
+                                    <option value="{{ room_name }}">{{ room_name }}</option>
+                                {% empty %}
+                                    <option value="">No rooms available</option>
+                                {% endfor %}
+                            </select><br>
+                        </div>
+                        <div class="room-button">
+                            <input id="room-name-submit" type="button" value="Enter">
+                        </div>
+                    </div>
+                </div>
+                <div class="chat-illustration-container">
+                    <img src="{% static 'images/chat-illustration.png' %}" alt="chat-illustration" class="chat-illustration">
+                </div>
+            </div>
+
+            <script>
+                document.querySelector('#room-name-select').focus();
+                
+                document.querySelector('#room-name-submit').onclick = function(e) {
+                    var roomName = document.querySelector('#room-name-select').value;
+                    if (roomName) {
+                        window.location.pathname = '/chat/' + roomName + '/';
+                    } else {
+                        alert('Please select a room to enter.');
+                    }
+                };
+            </script>
+        </div>
+    {% endif %}
+{% endblock %}

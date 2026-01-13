@@ -1,0 +1,33 @@
+{% extends 'base_generic.html' %}
+
+<!-- Load static files here -->
+{% load static %}
+
+{% block title %}Search Users - Classnet{% endblock %}
+
+{% block content %}
+<div class="search_results">
+  <h1>Search Users</h1>
+
+  <form method="POST" class="user-search-form">
+    {% csrf_token %}
+    {{ form.as_p }}
+      <button type="submit">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="40" height="40" fill="currentColor">
+          <path d="M10.5 3a7.5 7.5 0 1 0 4.77 13.36l5.14 5.14a1 1 0 0 0 1.41-1.41l-5.14-5.14A7.5 7.5 0 0 0 10.5 3zm0 2a5.5 5.5 0 1 1 0 11 5.5 5.5 0 0 1 0-11z"></path>
+        </svg>
+      </button>
+  </form>
+
+  {% if users %}
+    <h2>Search Results</h2>
+    <ul>
+      {% for user in users %}
+        <li><a href="{% url 'user_profile' user.id %}">{{ user.username }} - {{ user.get_user_type_display }}</a></li>
+      {% empty %}
+        <p>No results found.</p>
+      {% endfor %}
+    </ul>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,30 @@
+<!-- feedback_form.html -->
+{% extends 'base_generic.html' %}
+
+<!-- Load static files here -->
+{% load static %}
+
+{% block content %}
+<div class ="feedback-form">
+  <h2>Provide Feedback for {{ course.name }}</h2>
+  
+  <form method="POST">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Submit Feedback</button>
+  </form>
+
+  <h3>Existing Feedback:</h3>
+  <ul>
+    {% for feedback in feedbacks %}
+      <li>
+        <strong>{{ feedback.user.username }}</strong> (Rating: {{ feedback.get_rating_display }})<br>
+        {{ feedback.feedback }}<br>
+        <small>Submitted on: {{ feedback.created_at }}</small>
+      </li>
+    {% empty %}
+      <li>No feedback available yet.</li>
+    {% endfor %}
+  </ul>
+</div>
+{% endblock %}

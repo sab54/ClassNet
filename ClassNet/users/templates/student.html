@@ -1,0 +1,297 @@
+{% extends 'base_generic.html' %}
+{% load static %}
+
+{% block title %}
+    Student Home - ClassNet
+{% endblock %}
+
+{% block content %}
+    <div class="notification">
+        <button class="notification-icon" id="notification-icon">
+            🔔
+            {% if unread_notifications %}
+                <span class="unread-count">{{ unread_notifications.count }}</span>
+            {% endif %}
+        </button>
+        <div id="notification-popup" class="notification-popup hidden">
+            <h2>My Notifications</h2>
+            {% if unread_notifications %}
+                <ul>
+                    {% for notification in unread_notifications %}
+                        <li>
+                            <strong>{{ notification.date_created }}</strong>: {{ notification.message }}
+                                <a href="{% url 'mark_as_read_student_notifications' notification.id %} "class="mark-as-read-btn">
+                                Mark as Read
+                            </a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>You have no unread notifications.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="personalized-dashboard">
+        <div class="banner">
+            <div class="heading-with-chat">
+                    <h1>Welcome to ClassNet, {{ user.get_short_name }}!</h1>
+            </div>
+            <div class="user-info">
+                <h2>My Information:</h2>
+                <p><strong>Username:</strong> {{ user.username }}</p>
+                <p><strong>Email:</strong> {{ user.email }}</p>
+                <p><strong>User Type:</strong> {{ user.get_user_type_display }}</p>
+            </div>
+        </div>
+
+        <div class="dashboard-content">
+            <div class="courses-section">
+        <div class="tab-buttons">
+            <button id="enrolled-courses-tab" onclick="setActiveTab('enrolled-courses')">My Enrolled Courses</button>
+            <button id="available-courses-tab" onclick="setActiveTab('available-courses')">Available Courses</button>
+            <button id="completed-courses-tab" onclick="setActiveTab('completed-courses')">Completed Courses</button>
+        </div>
+
+        <!-- Enrolled Courses -->
+        <div id="enrolled-courses" class="tab-content">
+            <div class="student-courses">
+            {% if user.is_authenticated %}
+                {% if user.user_type == 'student' %}
+                    <h1>Your Enrolled Courses</h1>
+                    {% if page_obj_enrolled %}
+                            <div class="course-container">
+                                    {% for course in page_obj_enrolled %}
+                                    <div class="course-card">
+                                        <div class="card-info">
+                                            <a href="{% url 'view_course' course.id %}">
+                                                <img src="{% static 'images/courses- card.png' %}" alt="Course Card" class="course-image">
+                                                <div class="card-header">
+                                                    <h2>{{ course.name }}</h2>
+                                                    <p>{{ course.description }}</p>
+                                                </div>
+                                            </a>
+                                        </div>
+                                        <div class="card-body">
+                                            <p><strong>Teacher:</strong> {{ course.teacher }}</p>
+                                            <a href="{% url 'view_course' course.id %}">View</a>
+                                            <a href="{% url 'unenroll_from_course' course.id %}" onclick="return confirm('Are you sure you want to unenroll from this course?');">Unenroll</a>
+                                            <div class="progress-container">
+                                                {% for p in progress.items %}
+                                                        {% if p.0 == course.id %}
+                                                        {% with progress_value=p.1 %}
+                                                        <div class="progress-bar">
+                                                            <div class="progress" style="width: {{ progress_value }}%;"></div>
+                                                        </div>
+                                                            <p>{{ progress_value|floatformat:1 }}% complete</p>
+                                                        {% endwith %}
+                                                    {% endif %}
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                            </div>
+                    {% else %}
+                        <p>You are not enrolled in any courses yet.</p>
+                    {% endif %}
+                {% endif %}
+            {% endif %}
+        </div>
+
+            <div id="pagination">
+                {% if page_obj_enrolled.has_previous %}
+                    <a href="?page_enrolled=1&tab=enrolled-courses" id="first-page">First</a>
+                    <a href="?page_enrolled={{ page_obj_enrolled.previous_page_number }}&tab=enrolled-courses" id="prev-page">Prev</a>
+                {% endif %}
+                <span id="page-number">Page {{ page_obj_enrolled.number }} of {{ page_obj_enrolled.paginator.num_pages }}</span>
+                {% if page_obj_enrolled.has_next %}
+                    <a href="?page_enrolled={{ page_obj_enrolled.next_page_number }}&tab=enrolled-courses" id="next-page">Next</a>
+                    <a href="?page_enrolled={{ page_obj_enrolled.paginator.num_pages }}&tab=enrolled-courses" id="last-page">Last</a>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Available Courses -->
+        <div id="available-courses" class="tab-content">
+            <div class="available-courses">
+            {% if user.is_authenticated %}
+                {% if user.user_type == 'student' %}
+                    <h1>Available Courses for Enrollment</h1>
+                    {% if page_obj_available %}
+                            <div class="course-container">
+                                    {% for course in page_obj_available %}
+                                    <div class="course-card">
+                                        <div class="card-info">
+                                            <a href="{% url 'view_course' course.id %}">
+                                                <img src="{% static 'images/courses- card.png' %}" alt="Course Card" class="course-image">
+                                                <div class="card-header">
+                                                    <h2>{{ course.name }}</h2>
+                                                    <p>{{ course.description }}</p>
+                                                </div>
+                                            </a>
+                                        </div>
+                                        <div class="card-body">
+                                                <p><strong>Teacher:</strong> {{ course.teacher }}</p>
+                                                <a href="{% url 'view_course' course.id %}">View</a>
+                                                <a href="{% url 'enroll_in_course' course.id %}">Enroll</a>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                            </div>
+                    {% else %}
+                        <p>No courses are available for enrollment at the moment.</p>
+                    {% endif %}
+                {% endif %}
+            {% endif %}
+        </div>
+
+            <!-- Pagination for Available Courses -->
+            <div id="pagination">
+                {% if page_obj_available.has_previous %}
+                    <a href="?page_available=1&tab=available-courses" id="first-page">First</a>
+                    <a href="?page_available={{ page_obj_available.previous_page_number }}&tab=available-courses" id="prev-page">Prev</a>
+                {% endif %}
+                <span id="page-number">Page {{ page_obj_available.number }} of {{ page_obj_available.paginator.num_pages }}</span>
+                {% if page_obj_available.has_next %}
+                    <a href="?page_available={{ page_obj_available.next_page_number }}&tab=available-courses" id="next-page">Next</a>
+                    <a href="?page_available={{ page_obj_available.paginator.num_pages }}&tab=available-courses" id="last-page">Last</a>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Completed Courses -->
+        <div id="completed-courses" class="tab-content">
+            <div class="completed-courses">
+                {% if user.is_authenticated %}
+                    {% if user.user_type == 'student' %}
+                        <h1>My Completed Courses</h1>
+                        {% if page_obj_enrolled %}
+                            <div class="course-container">
+                                {% for course in page_obj_enrolled %}
+                                    {% for p in progress.items %}
+                                        {% if p.0 == course.id %}
+                                            {% if p.1 == 100 %}
+                                            <div class="course-card">
+                                                <div class="card-info">
+                                                    <a href="{% url 'view_course' course.id %}">
+                                                        <img src="{% static 'images/courses- card.png' %}" alt="Course Card" class="course-image">
+                                                        <div class="card-header">
+                                                            <h2>{{ course.name }}</h2>
+                                                        </div>
+                                                    </a>
+                                                </div>
+                                                <div class="card-body">
+                                                    <p><strong>Feedback:</strong> <a href="{% url 'course_feedback' course.id %}">View</a></p>
+                                                </div>
+                                            </div>
+                                            {% endif %}
+                                        {% endif %}
+                                    {% endfor %}
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <p>You have not completed any courses yet.</p>
+                        {% endif %}
+                    {% endif %}
+                {% endif %}
+            </div>
+
+                    <!-- Pagination for Completed Courses -->
+            <div id="pagination">
+                {% if page_obj_enrolled.has_previous %}
+                    <a href="?page_enrolled=1&tab=completed-courses" id="first-page">First</a>
+                    <a href="?page_enrolled={{ page_obj_enrolled.previous_page_number }}&tab=completed-courses" id="prev-page">Prev</a>
+                {% endif %}
+                <span id="page-number">Page {{ page_obj_enrolled.number }} of {{ page_obj_enrolled.paginator.num_pages }}</span>
+                {% if page_obj_enrolled.has_next %}
+                    <a href="?page_enrolled={{ page_obj_enrolled.next_page_number }}&tab=completed-courses" id="next-page">Next</a>
+                    <a href="?page_enrolled={{ page_obj_enrolled.paginator.num_pages }}&tab=completed-courses" id="last-page">Last</a>
+            {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="sidebar">
+                <div class="status-updates">
+                    <h1>Status Updates</h1>
+                    <form method="GET" action="{% url 'add_status_update' %}">
+                        {% csrf_token %}
+                        {{ form.as_p }}
+                        <button type="submit">Post Status Update</button>
+                    </form>
+
+                    {% if status_page_obj %}
+                        <ul>
+                            {% for update in status_page_obj %}
+                                <li>
+                                    <strong>{{ update.timestamp|date:"Y-m-d H:i" }}:</strong> {{ update.content }}
+                                    </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p>You haven't posted any status updates yet.</p>
+                    {% endif %}
+
+                    <div id="pagination">
+                        {% if status_page_obj.has_previous %}
+                            <a href="?page_status=1" id="first-page">First</a>
+                            <a href="?page_status={{ status_page_obj.previous_page_number }}" id="prev-page">Prev</a>
+                        {% endif %}
+                        <span id="page-number">Page {{ status_page_obj.number }} of {{ status_page_obj.paginator.num_pages }}</span>
+                        {% if status_page_obj.has_next %}
+                            <a href="?page_status={{ status_page_obj.next_page_number }}" id="next-page">Next</a>
+                            <a href="?page_status={{ status_page_obj.paginator.num_pages }}" id="last-page">Last</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    <div>
+
+    <script>
+        // JavaScript for setting active tab
+        // On page load, set the active tab based on URL parameters
+        window.onload = function() {
+            if (document.querySelector('.unread-count')) {
+                setTimeout(function() {
+                    toggleNotifications();
+                }, 5000);
+            }
+        };
+        // Function to toggle the notification popup
+        function toggleNotifications() {
+            const popup = document.getElementById('notification-popup');
+            popup.classList.toggle('hidden');
+        }
+
+        // Add event listener for notification icon
+        const notificationIcon = document.getElementById('notification-icon');
+        notificationIcon.addEventListener('click', function(event) {
+            event.stopPropagation();
+            toggleNotifications();
+        });
+        function setActiveTab(tabName) {
+        // Get current URL params and modify the tab parameter
+            const urlParams = new URLSearchParams(window.location.search);
+            urlParams.set('tab', tabName);
+            window.location.search = urlParams.toString();
+        }
+
+        // On page load, set the active tab based on URL parameters
+        window.onload = function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const activeTab = urlParams.get('tab') || 'enrolled-courses'; // Default tab
+            document.querySelector(`#${activeTab}-tab`).classList.add('active'); // Add 'active' class to the active tab
+            toggleContent(activeTab);
+        };
+
+        // Function to toggle content sections based on the active tab
+        function toggleContent(tab) {
+            const contentSections = document.querySelectorAll('.tab-content');
+                contentSections.forEach(function (section) {
+                    section.style.display = 'none';
+                });
+                document.getElementById(tab).style.display = 'block';
+            }
+    </script>
+{% endblock %}

@@ -1,0 +1,40 @@
+{% extends 'base_generic.html' %}
+
+<!-- Load static files here -->
+{% load static %}
+
+{% block title %}Login - Classnet{% endblock %}
+
+{% block content %}
+<div class="login-container">
+  <div class="login-illustration">
+    <img src="{% static 'images/login-illustration.png' %}" alt="Login Illustration">
+  </div>
+  <div class="login-form">
+  <h2>Login</h2>
+  <form method="POST">
+    {% csrf_token %}
+    <label for="username">Username</label>
+    <input type="text" name="username" required>
+    <label for="password">Password</label>
+    <input type="password" name="password" required>
+    <button type="submit">Login</button>
+  </form>
+        <!-- Display error messages here -->
+        {% if messages %}
+        <ul class="messages">
+          {% for message in messages %}
+          <li class="message {{ message.tags }}">{{ message }}</li>
+          {% endfor %}
+        </ul>
+        {% endif %}
+    <div class = "registration-link">
+      <p>
+        <span class="intro-text">New to ClassNet? </span>
+        <span class="register-link"><a href="{% url 'register' %}">Register here</a></span>
+      </p>
+    </div>
+  </div>
+</div>
+{% endblock %}
+

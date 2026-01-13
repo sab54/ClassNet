@@ -1,0 +1,18 @@
+{% extends 'base_generic.html' %}
+
+
+<!-- Load static files here -->
+{% load static %}
+
+{% block title %}Update Material - ClassNet{% endblock %}
+
+
+{% block content %}
+  <h2>Change Material for {{ course.name }}</h2>
+
+  <form method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Update Material</button>
+  </form>
+{% endblock %}

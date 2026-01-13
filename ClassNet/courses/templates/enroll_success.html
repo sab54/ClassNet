@@ -1,0 +1,16 @@
+{% extends 'base_generic.html' %}
+
+
+<!-- Load static files here -->
+{% load static %}
+
+{% block title %}Enroll into course - ClassNet{% endblock %}
+
+{% block content %}
+  <h2>Success!</h2>
+  <p>You have successfully enrolled in the course: {{ course.name }}.</p>
+
+  <a href="{% url 'view_course' course.id %}">Go to Course Page</a>
+  <br>
+  <a href="{% url 'available_courses' %}">Back to Available Courses</a>
+{% endblock %}

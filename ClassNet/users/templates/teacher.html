@@ -1,0 +1,162 @@
+{% extends 'base_generic.html' %}
+{% load static %}  <!-- Load the static tag here -->
+{% block title %}
+    Teacher Home - ClassNet
+{% endblock %}
+
+{% block content %}
+    <div class="notification">
+        <button class="notification-icon" id="notification-icon">
+            🔔
+            {% if unread_notifications %}
+                <span class="unread-count">{{ unread_notifications.count }}</span>
+            {% endif %}
+        </button>
+        <div id="notification-popup" class="notification-popup hidden">
+            <h2>My Notifications</h2>
+        {% if unread_notifications %}
+                <ul>
+            {% for notification in unread_notifications %}
+                <li>
+                    <strong>{{ notification.date_created }}</strong>: {{ notification.message }}
+                            <a href="{% url 'mark_as_read_teacher_notifications' notification.id %}" class="mark-as-read-btn">
+                                Mark as Read
+                            </a>
+                </li>
+            {% endfor %}
+                </ul>
+        {% else %}
+            <p>You have no unread notifications.</p>
+        {% endif %}
+        </div>
+    </div>
+
+    <div class="personalized-dashboard">
+        <div class="banner">
+            <div class="heading-with-chat">
+                <h1>Welcome to ClassNet, {{ user.get_short_name }}!</h1>
+            </div>
+            <div class="user-info">
+                <h2>My Information:</h2>
+                    <p><strong>Username:</strong> {{ user.username }}</p>
+                    <p><strong>Email:</strong> {{ user.email }}</p>
+                    <p><strong>User Type:</strong> {{ user.get_user_type_display }}</p>
+            </div>
+        </div>
+
+            <div class="dashboard-content">
+                <div class="courses-section">
+                <a href="{% url 'create_course' %}" class="create-link">
+                    <button class="btn-create-course">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="40" height="40" fill="currentColor">
+                            <path d="M12 5c0-.55.45-1 1-1h2c.55 0 1 .45 1 1v5h5c.55 0 1 .45 1 1v2c0 .55-.45 1-1 1h-5v5c0 .55-.45 1-1 1h-2c-.55 0-1-.45-1-1v-5H7c-.55 0-1-.45-1-1v-2c0-.55.45-1 1-1h5V5z"/></path>
+                        </svg>
+                        <span>Create</span>
+                        </button>
+                    </a>
+
+        <div class="courses-section">
+            {% if user.is_authenticated %}
+                {% if user.courses_taught.exists and user.user_type == 'teacher' %}
+                    <h1>My Courses (as a Teacher)</h1>
+                            <div class="course-container">
+                                {% for course in page_obj_course %}
+                                    <div class="course-card">
+                                        <div class="card-info">
+                                            <a href="{% url 'view_course' course.id %}">
+                                                <img src="{% static 'images/courses- card.png' %}" alt="Course Card" class="course-image">
+                                        <div class="card-header">
+                                            <h2>{{ course.name }}</h2>
+                                            <p>{{ course.description }}</p>
+                                        </div>
+                                            </a>
+                                        </div>
+                                        <div class="card-body">
+                                            <a href="{% url 'view_course' course.id %}">Manage</a>
+                                            <a href="{% url 'delete_course' course.id %}">Delete</a><br>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+
+                        <div id="pagination">
+                            {% if page_obj_course.has_previous %}
+                                <a href="?page_course=1" id="first-page">First</a>
+                                <a href="?page_course={{ page_obj_course.previous_page_number }}" id="prev-page">Prev</a>
+                            {% endif %}
+                            <span id="page-number">Page {{ page_obj_course.number }} of {{ page_obj_course.paginator.num_pages }}</span>
+                            {% if page_obj_course.has_next %}
+                                <a href="?page_course={{ page_obj_course.next_page_number }}" id="next-page">Next</a>
+                                <a href="?page_course={{ page_obj_course.paginator.num_pages }}" id="last-page">Last</a>
+                            {% endif %}
+                        </div>
+                {% endif %}
+            {% endif %}
+        </div>
+
+    </div>
+            <div class="sidebar">
+                <!-- Search Users Section -->
+                <div class="search-users">
+            <form method="POST" action="{% url 'search_users' %}" class="search-form">
+                        {% csrf_token %}
+                        {{ form.as_p }}
+                    <button class="search-button">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="40" height="40" fill="currentColor">
+                        <path d="M10.5 3a7.5 7.5 0 1 0 4.77 13.36l5.14 5.14a1 1 0 0 0 1.41-1.41l-5.14-5.14A7.5 7.5 0 0 0 10.5 3zm0 2a5.5 5.5 0 1 1 0 11 5.5 5.5 0 0 1 0-11z"></path>
+                        </svg>
+                        <span>Search Users</span>
+                    </button>
+                    </form>
+                </div>
+
+                <div class="status-updates">
+                    <h1>Status Updates</h1>
+                    {% if status_page_obj %}
+                    <ul>
+                        {% for update in status_page_obj %}
+                        <li>
+                            <strong>{{ update.timestamp|date:"Y-m-d H:i" }}:</strong> -- {{update.user.username}} --- {{ update.content }}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <p>You haven't posted any status updates yet.</p>
+                    {% endif %}
+
+                    <div id="pagination">
+                    {% if status_page_obj.has_previous %}
+                        <a href="?page_status=1" id="first-page">First</a>
+                        <a href="?page_status={{ status_page_obj.previous_page_number }}" id="prev-page">Prev</a>
+                    {% endif %}
+                    <span id="page-number">Page {{ status_page_obj.number }} of {{ status_page_obj.paginator.num_pages }}</span>
+                    {% if status_page_obj.has_next %}
+                        <a href="?page_status={{ status_page_obj.next_page_number }}" id="next-page">Next</a>
+                        <a href="?page_status={{ status_page_obj.paginator.num_pages }}" id="last-page">Last</a>
+                    {% endif %}
+                </div>
+            </div>
+    <script>
+        // On page load, set the active tab based on URL parameters
+        window.onload = function() {
+            // Automatically close the notification after 5 seconds if there are unread notifications
+            if (document.querySelector('.unread-count')) {
+                setTimeout(function() {
+                    toggleNotifications();  // This will hide the popup
+                }, 5000);
+            }
+        };
+        // Function to toggle the notification popup
+        function toggleNotifications() {
+            const popup = document.getElementById('notification-popup');
+            popup.classList.toggle('hidden'); // Toggles visibility based on the hidden class
+        }
+
+        // Add event listener for notification icon
+        const notificationIcon = document.getElementById('notification-icon');
+        notificationIcon.addEventListener('click', function(event) {
+            event.stopPropagation(); // Prevent any bubbling effect
+            toggleNotifications(); // Toggle the popup visibility
+        });
+    </script>
+{% endblock %}

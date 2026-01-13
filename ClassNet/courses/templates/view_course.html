@@ -1,0 +1,168 @@
+{% extends 'base_generic.html' %}
+<!-- Load static files here -->
+{% load static %}
+
+{% block title %}View Course - ClassNet{% endblock %}
+
+{% block content %}
+<div class="course-view">
+  <div class="courses">
+    <h2>Course :  {{ course.name }} </h2>
+    <ul>
+      <li>Description:  {{ course.description }}</li>
+      <li>Teacher:  {{ course.teacher.username }}</li>
+    </ul>
+  </div>
+
+  {% if user.is_authenticated %}
+    {% if user.user_type == 'teacher' %}
+      <div class="courses">
+        <h2>Enrolled Students</h2>
+        <ul>
+          {% if student_page_obj %}
+            <table id="enroll-table">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Email</th>
+                  <th>Profile</th>
+                  <th>Progress</th>
+                  <th>% Complete</th>
+                  <th>Block</th>
+                  <th>Remove</th>
+                  <th>Feedback</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for enrollment in student_page_obj %}
+                  <tr class="course-row">
+                    <td>{{ enrollment.student.first_name }}</td>
+                    <td>{{ enrollment.student.email }}</td>
+                    <td>
+                      {% if enrollment.student.profile_picture %}
+                        <img src="{{ enrollment.student.profile_picture.url }}" alt="Profile Picture" width="40" height="40">
+                      {% endif %}
+                    </td>
+                    <td>
+                        {% with progress_value=enrollment.progress %}                                                        
+                            <div class="progress-bar">
+                                <div class="progress" style="width: {{ progress_value }}%;"></div>
+                            </div>                                                    
+                        {% endwith %}
+                    </td>
+
+                    <td>{{ enrollment.progress|floatformat:1 }}%</td>
+                    <td>
+                      {% if enrollment.blocked %}
+                        <a href="{% url 'unblock_student' enrollment.course_id enrollment.student.id %}">Unblock</a>
+                      {% else %}
+                        <a href="{% url 'block_student' enrollment.course_id enrollment.student.id %}">Block</a>
+                      {% endif %}
+                    </td>
+                    <td>
+                      <a href="{% url 'remove_student' enrollment.course_id enrollment.student.id %}">Remove</a>
+                    </td>
+                    <td>
+                      {% for feedback in feedbacks %}
+                        {% if feedback.user == enrollment.student %}
+                          {{feedback.rating}} - {{feedback.get_rating_display}} - {{feedback.feedback}}
+                        {% endif %}
+                      {% endfor %}    
+                    </td>
+                  </tr>
+                {% empty %}
+                  <tr>
+                    <td colspan="3">No students enrolled yet.</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          {% else %}
+            <p>No students enrolled yet.</p>
+          {% endif %}
+        </ul>
+
+        <div id="pagination">
+          {% if student_page_obj.has_previous %}
+            <a href="?student_page=1" id="first-page">First</a>
+            <a href="?student_page={{ student_page_obj.previous_page_number }}" id="prev-page">Prev</a>
+          {% endif %}
+          <span id="page-number">Page {{ student_page_obj.number }} of {{ student_page_obj.paginator.num_pages }}</span>
+          {% if student_page_obj.has_next %}
+            <a href="?student_page={{ student_page_obj.next_page_number }}" id="next-page">Next</a>
+            <a href="?student_page={{ student_page_obj.paginator.num_pages }}" id="last-page">Last</a>
+          {% endif %}
+        </div>
+      </div>
+    {% endif %}
+  {% endif %}
+
+  {% if user == course.teacher %}
+  <br>
+  <a href="{% url 'add_material' course.id %}" class="add-material-btn">Add New Material</a>
+  {% endif %}
+
+  <div class="courses">
+    <h2>Course Material</h2>
+      <ul>
+        {% if material_page_obj %}
+          <table id="course-material-table">
+            <thead>
+              <tr>
+                <th>Description</th>
+                <th>File</th>
+                <th>Creation Date</th>
+                {% if user.is_authenticated and user.user_type == 'student'%}
+                  <th>Mark as Completed</th>
+                {% endif %}
+              </tr>
+            </thead>
+            <tbody>
+              {% for material in material_page_obj %}
+                <tr class="course-row">
+                  <td>{{ material.description }}</td>
+                  {% if material.file %}
+                    <td><a href="{{ material.file.url }}" target="_blank">{{ material.file.name|slice:"-8:" }}</a></td>
+                  {% endif %}
+                  <td>{{ material.uploaded_at }}</td>
+                  <td>
+                    {% if user.is_authenticated and user.user_type == 'student' %}
+                      <!-- Create a form for each material -->
+                      <form method="post" action="{% url 'mark_material_as_completed' material.id %}">
+                        {% csrf_token %}
+                        <!-- Checkbox to mark material as completed -->
+                        <label>
+                          <input type="checkbox" name="completed_materials" value="{{ material.id }}"
+                                  {% if material.id in completed_material_ids %}checked{% endif %}>
+                        </label>
+                        <button type="submit">Update Progress</button>
+                      </form>
+                    {% endif %}
+                  </td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="5">No materials uploaded yet.</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        {% else %}
+          <p>No materials uploaded yet.</p>
+        {% endif %}
+      </ul>
+  
+      <div id="pagination">
+        {% if material_page_obj.has_previous %}
+          <a href="?material_page=1" id="first-page">First</a>
+          <a href="?material_page={{ material_page_obj.previous_page_number }}" id="prev-page">Prev</a>
+        {% endif %}
+        <span id="page-number">Page {{ material_page_obj.number }} of {{ material_page_obj.paginator.num_pages }}</span>
+        {% if material_page_obj.has_next %}
+          <a href="?material_page={{ material_page_obj.next_page_number }}" id="next-page">Next</a>
+          <a href="?material_page={{ material_page_obj.material_paginator.num_pages }}" id="last-page">Last</a>
+        {% endif %}
+      </div>
+      </div>
+</div>
+{% endblock %}

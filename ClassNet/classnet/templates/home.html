@@ -1,0 +1,72 @@
+{% extends 'base_generic.html' %}
+
+{% load static %}
+
+{% block body_class %}home{% endblock %}
+
+{% block title %}Home - ClassNet{% endblock %}
+
+{% block content %}
+<div class = "home-content">
+    <div class="bg"></div>
+    <div class="bg bg2"></div>
+    <div class="bg bg3"></div>
+    <div class="home-content-details">
+        <h3>Want to enroll in a course?</h3>
+        <p>Join us to unlock skills and achieve your goals.</p>
+        <a href="{% url 'register' %}" class="btn-register bold-rectangle-home">Register</a>
+    </div>
+</div>
+    <div class="dashboard">
+        <div class="courses">
+            {% if user.is_authenticated %}
+                {% if user.courses_taught.exists and user.user_type == 'teacher' %}
+                <h1 class="header">Your Courses (as a Teacher)</h1>
+                <ul class="course-list">
+                        {% for course in user.courses_taught.all %}
+                        <li class="course-item">{{ course.title }} - {{ course.description }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+
+                {% if user.enrollments.exists and user.user_type == 'student' %}
+                <h1 class="header">Your Enrolled Courses (as a Student)</h1>
+                <ul class="course-list">
+                        {% for enrollment in user.enrollments.all %}
+                        <li class="course-item">{{ enrollment.course.title }} - {{ enrollment.course.description }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            {% else %}
+
+        <div class="course-container">
+                            {% for course in page_obj %}
+                <div class="course-card">
+                    <div class="card-content">
+                        <img src="{% static 'images/courses- card.png' %}" alt="Course Card" class="course-image">
+                        <h2 class="card-title">{{ course.name }}</h2>
+                        <p class="card-description">{{ course.description }}</p>
+                        <p class="card-teacher">Teacher: {{ course.teacher }}</p>
+                        <div class="card-buttons">
+                            <a href="{% url 'register' %}" class="btn-register">Register</a>
+                        </div>
+                    </div>
+                </div>
+                            {% endfor %}
+        </div>
+                    
+                    <div id="pagination">
+                        {% if page_obj.has_previous %}
+                            <a href="?page=1" id="first-page">First</a>
+                            <a href="?page={{ page_obj.previous_page_number }}" id="prev-page">Prev</a>
+                        {% endif %}
+                        <span id="page-number">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+                        {% if page_obj.has_next %}
+                            <a href="?page={{ page_obj.next_page_number }}" id="next-page">Next</a>
+                            <a href="?page={{ page_obj.paginator.num_pages }}" id="last-page">Last</a>
+                        {% endif %}
+                    </div>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}

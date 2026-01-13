@@ -1,0 +1,27 @@
+{% extends 'base_generic.html' %}
+
+
+<!-- Load static files here -->
+{% load static %}
+
+{% block title %}Add Material - ClassNet{% endblock %}
+
+{% block content %}
+<a href="{% url 'view_course' course.id %}" class="back-link">Back to Course</a>
+<div class ="create-course">
+  <div class ="course-illustrating">
+    <img src="{% static 'images/course-illustration.png' %}" alt="Course Illustration" class="course-image">
+  </div>
+<div class="create-course-form">
+  <h2>Upload Material for{{ course.name }}</h2>
+
+
+  <form method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Upload Material</button>
+  </form>
+  <br>
+</div>
+</div>
+{% endblock %}

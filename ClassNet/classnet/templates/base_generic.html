@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Default Title{% endblock %}</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="nav-container">
+                <div class="logo">
+                    <h1><span class="class">Class</span><span class="net">Net</span></h1>
+                </div>
+
+                <ul class="nav-left">
+                {% if user.is_authenticated %}
+                    {% if user.user_type == user.TEACHER %}
+                        <li><a href="{% url 'teacher' %}">Teacher Home</a></li>
+                    {% elif user.user_type == user.STUDENT %}
+                        <li><a href="{% url 'student' %}">Student Home</a></li>
+                        {% endif %}
+                    {% else %}
+                        <li><a href="{% url 'home' %}">Home</a></li>
+                    {% endif %}
+                </ul>
+                <ul class="nav-right">
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'index' %}" class="chat-link">
+                            <button class="chat-button">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="40" height="40" fill="currentColor">
+                                    <path d="M16.5 11.5c1.38 0 2.5-1.12 2.5-2.5S17.88 6.5 16.5 6.5 14 7.62 14 9s1.12 2.5 2.5 2.5zm-9 0C8.88 11.5 10 10.38 10 9S8.88 6.5 7.5 6.5 5 7.62 5 9s1.12 2.5 2.5 2.5zm0 2C5.42 13.5 2 14.67 2 16.25V18h11v-1.75c0-1.58-3.42-2.75-5.5-2.75zm9 0c-.23 0-.5.02-.78.05A5.367 5.367 0 0 1 18 16.25V18h4v-1.75c0-1.58-3.42-2.75-5.5-2.75z"/>
+                                </svg>
+                                <span>Chat Room</span>
+                            </button>
+                        </a>
+                    <div class="dropdown">
+                        {% if user.profile_picture %}
+                        <button class="dropbtn">
+                            <img src="{{ user.profile_picture.url }}" alt="Profile Picture" width="40" height="40">
+                        </button>
+                        {% else %}
+                        <button class="dropbtn">{{ user.get_short_name }}</button> <!-- Fallback if profile picture is not available -->
+                        {% endif %}
+                        <div class="dropdown-content">
+                            <a href="{% url 'profile'%}">Edit Profile</a>
+                            <a href="{% url 'change_password' %}">Change Password</a>
+                            <a href="{% url 'logout' %}">Logout</a>
+                        </div>
+                    </div>
+                {% else %}
+                    <li><a href="{% url 'login' %}">Login</a></li>
+                    <li class="bold-rectangle"><a href="{% url 'register' %}">Register</a></li>
+                {% endif %}
+            </ul>
+            </div>
+        </nav>
+    </header>
+    <main>
+        {% block content %}
+            {% if messages %}
+            <ul class="messages">
+                {% for message in messages %}
+                <li class="message {{ message.tags }}">{{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+        {% endblock %}
+    </main>
+    <footer>
+        <p>&copy; 2025 eLearning Platform</p>
+    </footer>
+</body>
+</html>

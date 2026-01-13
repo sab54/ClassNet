@@ -1,0 +1,47 @@
+{% extends 'base_generic.html' %}
+
+<!-- Load static files here -->
+{% load static %}
+
+{% block title %}Status Update - ClassNet{% endblock %}
+
+{% block content %}
+
+<div class ="status-update">
+<h2>Write your Status, {{ user.username }}</h2>
+
+  <!-- Display the form for posting status updates -->
+  <h3>Post a new status</h3>
+  <form method="POST">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="submit-button">Post Status Update</button>
+  </form>
+
+  <!-- Display the student's status updates -->
+  <h3>Your Status Updates</h3>
+  {% if status_page_obj %}
+    <ul>
+      {% for update in status_page_obj %}
+        <li>
+          <strong>{{ update.timestamp|date:"Y-m-d H:i" }}:</strong> {{ update.content }}
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>You haven't posted any status updates yet.</p>
+  {% endif %}
+
+  <div id="pagination">
+    {% if status_page_obj.has_previous %}
+        <a href="?page_status=1" id="first-page">First</a>
+        <a href="?page_status={{ status_page_obj.previous_page_number }}" id="prev-page">Prev</a>
+    {% endif %}
+    <span id="page-number">Page {{ status_page_obj.number }} of {{ status_page_obj.paginator.num_pages }}</span>
+    {% if status_page_obj.has_next %}
+        <a href="?page_status={{ status_page_obj.next_page_number }}" id="next-page">Next</a>
+        <a href="?page_status={{ status_page_obj.paginator.num_pages }}" id="last-page">Last</a>
+    {% endif %}
+  </div>
+  </div>
+{% endblock %}

@@ -1,0 +1,23 @@
+{% extends 'base_generic.html' %}
+
+<!-- Load static files here -->
+{% load static %}
+
+{% block title %}Profile - Classnet{% endblock %}
+
+{% block content %}
+
+            <div class ="view-profile">
+                {% if profile.profile_picture %}
+                    <img src="{{ user.profile_picture.url }}" alt="Profile Picture" class="profile-picture">
+                {% endif %}
+            </div>
+            <div class="search-user-profile">
+            <div class ="view-desc-profile">
+                <h2>{{ profile.get_short_name }}'s Profile</h2>
+                <p><strong>Username:</strong> {{ profile.username }}</p>
+                <p><strong>Email:</strong> {{ profile.email }}</p>
+                <p><strong>Full Name:</strong> {{ profile.get_full_name }}</p>
+            </div>
+        </div>
+{% endblock %}
